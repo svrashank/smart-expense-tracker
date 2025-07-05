@@ -1,10 +1,11 @@
 fastapi[standard]
 uvicorn[standard]
-sqlalchemy
+python-dotenv
+SQLAlchemy
+asyncpg
+sqlalchemy[asyncio]
 psycopg2-binary
 python-jose[cryptography]
 passlib[bcrypt]
 pydantic
-python-dotenv
 psycopg2-binary
-SQLAlchemy
