@@ -1,4 +1,4 @@
-from app.database import async_session
+from app.core.database import async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends
 
