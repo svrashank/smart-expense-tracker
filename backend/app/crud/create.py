@@ -25,4 +25,4 @@ async def create_user(db: AsyncSession, user: UserCreate) -> User:
 async def user_exists(db:AsyncSession, email: EmailStr):
     stmt = select(User).where(User.email.in_([email]))
     result = await db.execute(stmt)
-    return result.scalar_one_or_none()
+    return result.scalar_one_or_none() 
