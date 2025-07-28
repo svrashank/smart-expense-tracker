@@ -1,11 +1,15 @@
 from fastapi import FastAPI
 from app.routes import users
+import os 
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+load_dotenv()
+FRONTEND_PORT = os.getenv("FRONTEND_PORT")
 app = FastAPI()
 
 origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",   
+    f"http://localhost:{FRONTEND_PORT}",
+    f"http://127.0.0.1:{FRONTEND_PORT}",   
 ]
 app.add_middleware(
     CORSMiddleware,
