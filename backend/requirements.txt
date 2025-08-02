@@ -9,3 +9,4 @@ python-jose[cryptography]
 passlib[bcrypt]
 pydantic
 psycopg2-binary
+pyjwt

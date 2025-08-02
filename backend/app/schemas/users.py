@@ -7,9 +7,20 @@ class UserCreate(BaseModel):
 
 class UserOut(BaseModel):
     email : EmailStr
-
     model_config = ConfigDict(from_attributes = True)
 
 class UserDelete(BaseModel):
     email : EmailStr
+    username : str | None = None
+
+class Userlogin(BaseModel):
+    email : EmailStr
+    password : str 
+
+class UserGet(BaseModel):
+    email : EmailStr
+    username : str | None = None 
+    
+class UserGetLogin(BaseModel):
+    email: EmailStr
     username : str | None = None

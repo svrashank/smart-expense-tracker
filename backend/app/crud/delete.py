@@ -6,6 +6,7 @@ from app.models.users import User
 from sqlalchemy import select,delete
 from app.crud.create import user_exists
 from fastapi import HTTPException, status
+
 async def delete_user(user_data: UserDelete, db: AsyncSession) -> None:
     user_email = user_data.email
     if not user_exists(db,user_email):

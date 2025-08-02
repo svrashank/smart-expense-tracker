@@ -8,7 +8,6 @@ import axios from 'axios'
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { FlashOnRounded } from '@mui/icons-material';
-
 // var logo = "../assets/logo.png"
 function SignUp() {
     const navigate = useNavigate()
@@ -37,16 +36,25 @@ function SignUp() {
     const handleMouseUpPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
     };
-    async function HandleSubmit() {
+    async function HandleSubmit(e) {
+        e.preventDefault();
+        if (!matchPassword()){
+            setError('Passwords do not match');
+            setSuccess(null);
+            return;
+        }
         const formData = { email, password };
         try {
             const response = await axios.post("http://localhost:8000/auth/signup", formData);
+
             setSuccess("User Created")
             setError(null)
+            setTimeout(() => navigate('/'),2)
             // Optionally: navigate("/login") or show success
         } catch (error) {
             const error_message = error.response?.data?.detail || "Something went wrong, please try again"
             setError(error_message);
+            setSuccess(null)
         }
     }
     const HandleCheck = () => {
@@ -90,6 +98,8 @@ function SignUp() {
                     }}
                 />
             </Grid>
+            <form onSubmit={HandleSubmit} style = {{width : "100%"}} >
+                <Grid container direction={'column'} spacing = {3}>
                 <Grid item>
                     <FormControl fullWidth variant="standard">
                     <InputLabel htmlFor="email-input">Email address</InputLabel>
@@ -173,7 +183,9 @@ function SignUp() {
                         variant="contained" 
                         color="secondary" 
                         sx={{ mt: 1 ,borderRadius: 12, height:"50px",fontSize:"16px" }}
-                        onClick={matchPassword()? HandleSubmit:console.log("mismatch")}
+                        type='submit'
+                        disabled = { !email || !password || !confirmPassword || !matchPassword()}
+                        // onClick={matchPassword()? HandleSubmit:console.log("mismatch")}
                     >
                         Sign Up
                     </Button>
@@ -193,7 +205,8 @@ function SignUp() {
                         )}
 
                 </Grid>
-                
+            </Grid>
+            </form>
         </Grid>
     </Card>
   );
