@@ -1,113 +1,200 @@
-import { Grid, Input, InputLabel, FormControl, Button, Card, InputAdornment, IconButton, Typography, Box } from '@mui/material';
+import { Input, InputLabel, FormControl, Button, Typography, Box, InputAdornment, Fade } from '@mui/material';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import LockIcon from '@mui/icons-material/Lock';
-import GoogleIcon from '@mui/icons-material/Google';
-import FacebookIcon from '@mui/icons-material/Facebook';
-import GitHubIcon from '@mui/icons-material/GitHub';
-import logo from "../assets/logo.png"
 import { useNavigate } from 'react-router-dom';
-// var logo = "../assets/logo.png"
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import AuthLayout from '../components/AuthLayout';
+import { authButtonSx, authFieldSx } from '../components/styles';
+import { COLORS } from '../theme';
+
+function AnimatedPassword({ success, onChange, disabled }: { success?: boolean; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; disabled?: boolean }) {
+    const [progress, setProgress] = useState(0)
+    useEffect(()=>{
+        if (success){
+            setProgress(0);
+            const interval = setInterval(() => {
+                setProgress((prev) => {
+                    if (prev >= 100) {
+                        clearInterval(interval);
+                        return 100;
+                    }
+                    return prev + 2
+
+                })
+            },40)
+            return () => clearInterval(interval);
+        }
+        else {
+            setProgress(0)
+        }
+    }, [success])
+    return (
+        <Box sx={{ position: 'relative', width: '100%' }}>
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          height: '100%',
+          width: `${progress}%`,
+          bgcolor: COLORS.accent,
+          opacity: 0.15,
+          transition: 'width 40ms linear',
+          pointerEvents: 'none',
+          zIndex: 1,
+        }}
+      />
+      <FormControl fullWidth variant="standard" sx={{ position: 'relative', zIndex: 2, ...authFieldSx }}>
+        <InputLabel
+          sx={{
+            color: success ? COLORS.accent : undefined,
+            transition: 'color 0.5s ease',
+          }}
+        >
+          Password
+        </InputLabel>
+        <Input
+          type="password"
+          disabled={disabled}
+          onChange={onChange}
+          startAdornment={
+            <InputAdornment position="start" sx={{ position: 'relative', zIndex: 3 }}>
+              <Fade in={!success} timeout={300} unmountOnExit>
+                <LockIcon />
+              </Fade>
+              <Fade in={success} timeout={600}>
+                <LockOpenIcon sx={{ color: COLORS.accent }} />
+              </Fade>
+            </InputAdornment>
+          }
+          sx={{
+            color: success ? 'transparent' : undefined,
+            transition: 'color 1s ease',
+            position: 'relative',
+            zIndex: 3,
+          }}
+        />
+      </FormControl>
+    </Box>
+    )
+}
+
 function Login() {
     const navigate = useNavigate()
+    const [password,setPassword] = useState('')
+    const [email,setEmail] = useState('')
+    const [success, setSuccess] = useState<boolean | undefined>(undefined)
+    const [loading,setLoading] = useState(false)
+    const [error,setError] = useState('')
+    const [shake, setShake] = useState(false);
+    function handleEmailChange(event: React.ChangeEvent<HTMLInputElement>) {
+        setEmail(event.target.value)
+    }
+    function handlePasswordChange(event: React.ChangeEvent<HTMLInputElement>){
+        setPassword(event.target.value)
+    }
+    function handleSubmit (event : React.FormEvent<HTMLFormElement>) {
+
+        const data = new URLSearchParams()
+        data.append("username",email)
+        data.append("password",password)
+        event.preventDefault();
+        axios.post("http://localhost:8000/auth/login",
+                    data,
+                    {
+                        headers :{
+                                'Content-Type': "application/x-www-form-urlencoded",
+                        },
+                        withCredentials: true
+                    }
+            )
+             .then(() => {
+                setSuccess(true);
+                setTimeout(() => {
+                    setLoading(true);
+                    setTimeout(() =>{
+                        navigate("/home")
+                    },2000)
+
+                },600)})
+             .catch((error) =>  {
+                setSuccess(false)
+                setLoading(false)
+                if (error.response && error.response.data){
+                    setError(error.response.data.detail || "Login Error")
+                    setShake(true);
+                    setTimeout(() => setShake(false), 500);
+                }
+                else {
+                    setError("Network Error, Please try again later")
+                    setShake(true);
+                    setTimeout(() => setShake(false), 500);
+                }
+                console.log(error)})
+
+    }
   return (
-    <Card  sx={{ width: 450, margin: '2rem auto', padding: 2 }}>
+    <AuthLayout title="Welcome back" subtitle="Log in to see where things stand.">
+      <Box sx={{ animation: shake ? "shake 0.3s" : "none" }}>
+        {error && (
+          <Box
+            sx={{
+              borderLeft: `3px solid ${COLORS.negative}`,
+              background: COLORS.negativeSoft,
+              color: COLORS.negative,
+              fontSize: 13.5,
+              px: 1.5,
+              py: 1,
+              mb: 2.5,
+            }}
+          >
+            {error}
+          </Box>
+        )}
 
-    
-        <Grid
-        container
-        direction="column"
-        spacing={3}
-        sx={{
-            padding: 4,
-            maxWidth: 400,
-            margin: '0 auto',
-        }}
-        >
-            <Grid item sx={{ textAlign: 'center' }}>
-                <Box
-                    component="img"
-                    src={logo}
-                    alt="App Logo"
-                    sx={{
-                    height: 80,
-                    mb: 2,
-                    }}
-                />
-            </Grid>
-
-            <Grid item>
-                <FormControl fullWidth variant="standard">
+        <form onSubmit={handleSubmit}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Fade in={!success} timeout={500}>
+              <FormControl fullWidth variant="standard" sx={authFieldSx}>
                 <InputLabel htmlFor="email-input">Email address</InputLabel>
                 <Input
-                    id="input-with-icon-adornment"
-                    startAdornment={
-                        <InputAdornment position="start">
-                            <MailOutlineIcon />
-                        </InputAdornment>
-                    }
+                  id="email-input"
+                  onChange={handleEmailChange}
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <MailOutlineIcon />
+                    </InputAdornment>
+                  }
                 />
-                </FormControl>
-            </Grid>
+              </FormControl>
+            </Fade>
 
-            <Grid item>
-                <FormControl fullWidth variant="standard">
-                <InputLabel htmlFor="password-input">Password</InputLabel>
-                <Input
-                    id="input-with-icon-adornment"
-                    startAdornment={
-                        <InputAdornment position="start">
-                            <LockIcon />
-                        </InputAdornment>
-                    }
-                />
-                </FormControl>
-            </Grid>
-            <Grid Item>
-                <Button fullWidth variant="contained" color="secondary" sx={{"marginTop":"20px"}}>Login</Button>
-            </Grid>
-            <Grid item>
-                <Typography align="center" variant="body2" sx={{ color: '#666', fontWeight: 500, mt: 2, mb: 1 }}>
-                    or sign up using
-                </Typography>
-                </Grid>
+            <AnimatedPassword success={success} onChange={handlePasswordChange} disabled={loading} />
 
-                <Grid item>
-                <Grid container spacing={2} justifyContent="center">
-                    <Grid item>
-                    <IconButton color="success" aria-label="Google sign up">
-                        <GoogleIcon />
-                    </IconButton>
-                    </Grid>
-                    <Grid item>
-                    <IconButton color="primary" aria-label="Facebook sign up">
-                        <FacebookIcon />
-                    </IconButton>
-                    </Grid>
-                    <Grid item>
-                    <IconButton color="inherit" aria-label="GitHub sign up">
-                        <GitHubIcon />
-                    </IconButton>
-                    </Grid>
-                </Grid>
-            </Grid>
+            <Fade in={!success} timeout={500}>
+              <Button type="submit" fullWidth variant="contained" sx={authButtonSx}>
+                Log in
+              </Button>
+            </Fade>
 
-                <Grid item>
-                    <hr></hr>
-                <Typography align="center" variant="body2" sx={{ color: '#666', fontWeight: 500, mt: 2, mb: 1 }}>
-                    or sign up with email
-                </Typography>
-                <Button 
-                    fullWidth 
-                    variant="outlined" 
-                    color="primary" 
-                    sx={{ mt: 1 }}
-                    onClick={()=>{navigate('/signup')}}
+            <Fade in={!success}>
+              <Typography align="center" variant="body2" color={COLORS.muted}>
+                Don't have an account?{' '}
+                <Box
+                  component="span"
+                  onClick={() => navigate('/signup')}
+                  sx={{ color: COLORS.accent, fontWeight: 600, cursor: 'pointer', '&:hover': { opacity: 0.75 } }}
                 >
-                    Sign Up
-                </Button>
-            </Grid>
-        </Grid>
-    </Card>
+                  Sign up
+                </Box>
+              </Typography>
+            </Fade>
+          </Box>
+        </form>
+      </Box>
+    </AuthLayout>
   );
 }
 

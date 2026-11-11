@@ -1,42 +1,41 @@
-import { Grid, Input, InputLabel, Checkbox, Alert, FormControl, Button, Card, InputAdornment, IconButton, Typography, Box, FormControlLabel } from '@mui/material';
+import { Input, InputLabel, FormControl, Button, InputAdornment, IconButton, Typography, Box } from '@mui/material';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import LockIcon from '@mui/icons-material/Lock';
 import { useState } from 'react';
-import logo from "../assets/logo.png"
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import { FlashOnRounded } from '@mui/icons-material';
-// var logo = "../assets/logo.png"
+import AuthLayout from '../components/AuthLayout';
+import { authButtonSx, authFieldSx } from '../components/styles';
+import { COLORS } from '../theme';
+
 function SignUp() {
     const navigate = useNavigate()
     const [email,setEmail] = useState("")
     const [password,setPassword] = useState("")
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
     const [confirmPassword, setConfirmPassword] = useState("")
-    const [success,setSuccess]  = useState(null)
+    const [success,setSuccess]  = useState<string | null>(null)
     const [showPassword,setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const [showLoginRedirect, setShowLoginRedirect] = useState(false);
     const HandleClickShowPassword  = () => setShowPassword((show) => !show);
     const HandleClickShowConfirmPassword = () => setShowConfirmPassword((show) => !show)
-    function HandleEmailChange (event){
+    function HandleEmailChange (event: React.ChangeEvent<HTMLInputElement>){
         setEmail(event.target.value)
     }
-    const handleConfirmPasswordChange = (event) => {
+    const handleConfirmPasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setConfirmPassword(event.target.value)
     }
-    const HandlePasswordChange = (event) => {
+    const HandlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(event.target.value)
     }
-      const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    };
-
-    const handleMouseUpPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
     };
-    async function HandleSubmit(e) {
+
+    async function HandleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         if (!matchPassword()){
             setError('Passwords do not match');
@@ -45,170 +44,138 @@ function SignUp() {
         }
         const formData = { email, password };
         try {
-            const response = await axios.post("http://localhost:8000/auth/signup", formData);
+            await axios.post("http://localhost:8000/auth/signup", formData);
 
             setSuccess("User Created")
             setError(null)
-            setTimeout(() => navigate('/'),2)
-            // Optionally: navigate("/login") or show success
+            setTimeout(() => navigate('/login'),2)
         } catch (error) {
-            const error_message = error.response?.data?.detail || "Something went wrong, please try again"
-            setError(error_message);
-            setSuccess(null)
+                const detail = axios.isAxiosError(error) ? error.response?.data?.detail : undefined;
+                if (detail?.code === "USER_EXISTS") {
+                    setError(detail.message);
+                    setShowLoginRedirect(true);
+                } else {
+                    setError(detail?.message || "Something went wrong");
+                }
+                setSuccess(null);
         }
-    }
-    const HandleCheck = () => {
-        console.log("Change")
     }
     const matchPassword = () => {
-        if((password && confirmPassword) && (password === confirmPassword)){
-            return true
-        }
-        else {
-            return false
-        }
-        
+        return Boolean(password && confirmPassword && password === confirmPassword)
     }
+
   return (
+    <AuthLayout title="Create your account" subtitle="Start keeping track of where it all goes.">
+      <form onSubmit={HandleSubmit}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <FormControl fullWidth variant="standard" sx={authFieldSx}>
+            <InputLabel htmlFor="email-input">Email address</InputLabel>
+            <Input
+              id="email-input"
+              startAdornment={
+                <InputAdornment position="start">
+                  <MailOutlineIcon />
+                </InputAdornment>
+              }
+              onChange={HandleEmailChange}
+            />
+          </FormControl>
 
-    <Card  sx={{ width: 450, height:570, margin: '2rem auto', padding: 2, borderRadius: 12 }}>
+          <FormControl fullWidth variant="standard" sx={authFieldSx}>
+            <InputLabel htmlFor="password-input">Password</InputLabel>
+            <Input
+              id="password-input"
+              type={showPassword ? "text" : "password"}
+              startAdornment={
+                <InputAdornment position="start">
+                  <LockIcon />
+                </InputAdornment>
+              }
+              endAdornment={
+                <IconButton
+                  aria-label={showPassword ? 'hide the password' : 'display the password'}
+                  onClick={HandleClickShowPassword}
+                  onMouseDown={handleMouseDownPassword}
+                  edge="end"
+                >
+                  {showPassword ? <Visibility /> : <VisibilityOff />}
+                </IconButton>
+              }
+              onChange={HandlePasswordChange}
+            />
+          </FormControl>
 
-    
-        <Grid
-        container
-        direction="column"
-        spacing={3}
-        sx={{
-            padding: 4,
-            maxWidth: 400,
-            margin: '0 auto',
-            justifyContent: "center",
-            alignItems: "stretch",
-            height : "100%"
-        }}
-        >
-            <Grid item sx={{ textAlign: 'Center' }}>
-                <Box
-                    component="img"
-                    src={logo}
-                    alt="App Logo"
-                    sx={{
-                    height: 80,
-                    mb: 2,
-                    }}
-                />
-            </Grid>
-            <form onSubmit={HandleSubmit} style = {{width : "100%"}} >
-                <Grid container direction={'column'} spacing = {3}>
-                <Grid item>
-                    <FormControl fullWidth variant="standard">
-                    <InputLabel htmlFor="email-input">Email address</InputLabel>
-                    <Input
-                        id="input-with-icon-adornment"
-                        startAdornment={
-                            <InputAdornment position="start">
-                                <MailOutlineIcon />
-                            </InputAdornment>
-                        }
-                        onChange={HandleEmailChange}
-                    />
-                    </FormControl>
-                </Grid>
+          <FormControl fullWidth variant="standard" sx={authFieldSx}>
+            <InputLabel htmlFor="confirm-password-input">Confirm password</InputLabel>
+            <Input
+              id="confirm-password-input"
+              type={showConfirmPassword ? "text" : "password"}
+              startAdornment={
+                <InputAdornment position="start">
+                  <LockIcon sx={{ color: matchPassword() ? COLORS.accent : COLORS.negative }} />
+                </InputAdornment>
+              }
+              endAdornment={
+                <IconButton
+                  aria-label={showConfirmPassword ? 'hide the password' : 'display the password'}
+                  onClick={HandleClickShowConfirmPassword}
+                  onMouseDown={handleMouseDownPassword}
+                  edge="end"
+                >
+                  {showConfirmPassword ? <Visibility /> : <VisibilityOff />}
+                </IconButton>
+              }
+              onChange={handleConfirmPasswordChange}
+            />
+          </FormControl>
 
-                <Grid item>
-                    <FormControl fullWidth variant="standard">
-                    <InputLabel htmlFor="password-input">Password</InputLabel>
-                    <Input
-                        id="input-with-icon-adornment"
-                        type = {showPassword? "text":"password"}
-                        startAdornment={
-                            <InputAdornment position="start">
-                                <LockIcon />
+          <Button
+            fullWidth
+            variant="contained"
+            type="submit"
+            disabled={!email || !password || !confirmPassword || !matchPassword()}
+            sx={authButtonSx}
+          >
+            Sign up
+          </Button>
 
-                            </InputAdornment>
-                        }
-                        endAdornment = {
+          {success && (
+            <Box sx={{ borderLeft: `3px solid ${COLORS.accent}`, background: COLORS.accentSoft, color: COLORS.accent, fontSize: 13.5, px: 1.5, py: 1 }}>
+              {success}
+            </Box>
+          )}
+          {error && (
+            <Box sx={{ borderLeft: `3px solid ${COLORS.negative}`, background: COLORS.negativeSoft, color: COLORS.negative, fontSize: 13.5, px: 1.5, py: 1 }}>
+              {showLoginRedirect ? (
+                <>
+                  User already exists.{" "}
+                  <Box
+                    component="span"
+                    onClick={() => navigate('/login')}
+                    sx={{ cursor: 'pointer', textDecoration: 'underline', fontWeight: 600, '&:hover': { opacity: 0.75 } }}
+                  >
+                    Click here to log in
+                  </Box>
+                </>
+              ) : (
+                error
+              )}
+            </Box>
+          )}
 
-                                <IconButton 
-                                    aria-label={
-                                        showPassword ? 'hide the password' : 'display the password'
-                                    }
-                                    onClick={HandleClickShowPassword}
-                                    edge = 'end'
-                                    >
-                                        {showPassword ? <Visibility /> : <VisibilityOff />}
-                                    </IconButton>
-                        }
-                        onChange={HandlePasswordChange}
-                    />
-                    </FormControl>
-                </Grid>
-                <Grid item>
-                    <FormControl fullWidth variant="standard">
-                    <InputLabel htmlFor="outlined-adornment-password">Confirm Password</InputLabel>
-                    <Input
-                        id="input-with-icon-adornment"
-                        type = {showConfirmPassword? "text":"password"}
-                        startAdornment={
-                            <InputAdornment position="start">
-                                <LockIcon
-                                    sx={{color : matchPassword()?  '#638b06ff' : '#c93056ff'}} 
-                                />
-                            </InputAdornment>
-                        }
-                        endAdornment = {
-                            <IconButton 
-                                aria-label={
-                                    showConfirmPassword ? 'hide the password' : 'display the password'
-                                }
-                                onClick = {HandleClickShowConfirmPassword}
-                                edge = "end"
-                                >
-                                {showConfirmPassword? <Visibility /> : <VisibilityOff />}
-
-                            </IconButton>
-                        }
-                        onChange={handleConfirmPasswordChange}
-                    />
-                    </FormControl>
-                </Grid>
-                <Grid item>
-                    <Grid container spacing={2} justifyContent="center">
-                    </Grid>
-                </Grid>
-
-                <Grid item>
-                    <Button 
-                        fullWidth 
-                        variant="contained" 
-                        color="secondary" 
-                        sx={{ mt: 1 ,borderRadius: 12, height:"50px",fontSize:"16px" }}
-                        type='submit'
-                        disabled = { !email || !password || !confirmPassword || !matchPassword()}
-                        // onClick={matchPassword()? HandleSubmit:console.log("mismatch")}
-                    >
-                        Sign Up
-                    </Button>
-                    {success && (
-                        <Grid item>
-                            <Alert severity="success" sx={{ my: 2 }}>
-                            {success}
-                            </Alert>
-                        </Grid>
-                        )}
-                    {error && (
-                        <Grid item>
-                            <Alert severity="error" sx={{ my: 2 }}>
-                            {error}
-                            </Alert>
-                        </Grid>
-                        )}
-
-                </Grid>
-            </Grid>
-            </form>
-        </Grid>
-    </Card>
+          <Typography align="center" variant="body2" color={COLORS.muted}>
+            Already have an account?{' '}
+            <Box
+              component="span"
+              onClick={() => navigate('/login')}
+              sx={{ color: COLORS.accent, fontWeight: 600, cursor: 'pointer', '&:hover': { opacity: 0.75 } }}
+            >
+              Log in
+            </Box>
+          </Typography>
+        </Box>
+      </form>
+    </AuthLayout>
   );
 }
 export default SignUp
