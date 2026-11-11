@@ -5,8 +5,8 @@ SQLAlchemy
 asyncpg
 sqlalchemy[asyncio]
 psycopg2-binary
-python-jose[cryptography]
 passlib[bcrypt]
+bcrypt==4.0.1
 pydantic
-psycopg2-binary
 pyjwt
+alembic

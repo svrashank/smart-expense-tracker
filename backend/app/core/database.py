@@ -1,16 +1,15 @@
 # app/database.py
 
-import os
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-from dotenv import load_dotenv
+from sqlalchemy.orm import sessionmaker
+from app.core.config import Settings
 
-load_dotenv()
+settings = Settings()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
+DATABASE_URL = settings.DATABASE_URL
+LOG_SQL = settings.LOG_SQL
 # For async: must use asyncpg and postgresql+asyncpg
-engine = create_async_engine(DATABASE_URL, echo=True)
+engine = create_async_engine(DATABASE_URL, echo=LOG_SQL)
 
 async_session = sessionmaker(
     bind=engine,
@@ -18,4 +17,3 @@ async_session = sessionmaker(
     expire_on_commit=False,
 )
 
-Base = declarative_base()
