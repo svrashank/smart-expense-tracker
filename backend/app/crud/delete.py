@@ -4,15 +4,15 @@ from app.dependencies import get_db
 from sqlalchemy.ext.asyncio import AsyncSession 
 from app.models.users import User
 from sqlalchemy import select,delete
-from app.crud.create import user_exists
+from app.services.auth import user_exists_by_id
 from fastapi import HTTPException, status
 
 async def delete_user(user_data: UserDelete, db: AsyncSession) -> None:
-    user_email = user_data.email
-    if not user_exists(db,user_email):
+    id = user_data.id
+    if not await user_exists_by_id(db,id=id):
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
-                            detail = f"User with email {user_email} does not exist")
-    stmt = delete(User).where(User.email.in_([user_email]))
+                            detail = f"User Not found")
+    stmt = delete(User).where(User.id == id)
     results = await db.execute(stmt)
     await db.commit()
     return results.rowcount
