@@ -11,7 +11,6 @@ origins = [
     f"http://localhost:{FRONTEND_PORT}",
     f"http://127.0.0.1:{FRONTEND_PORT}",   
 ]
-print("Allowed Origins:", origins)  # Debug output
 app.add_middleware(
     CORSMiddleware,
     allow_origins = origins,

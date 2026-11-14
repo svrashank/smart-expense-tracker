@@ -35,7 +35,6 @@ async def get_token_from_cookie(request: Request):
     Fetch Token stored in Cookie while login
     """
     token = request.cookies.get("access_token")
-    print("COOKIE TOKEN:", token)
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
     return token
@@ -53,13 +52,13 @@ async def get_current_user(
     user = None
     try:
         decoded_payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        user_email = decoded_payload.get('sub')
-        if not user_email:
+        user_id = decoded_payload.get('sub')
+        if not user_id:
             raise credentials_exception
-        token_data = TokenData(email = user_email)
+        token_data = TokenData(id = user_id)
     except InvalidTokenError:
         raise credentials_exception
-    user = await get_user_from_db(email = token_data.email,db=db)
+    user = await get_user_from_db(user_id = token_data.id,db=db)
     if not user:
         raise credentials_exception
     return user
@@ -73,13 +72,13 @@ async def authenticate_user(email,password,db) -> UserGet:
                             detail = f'User with email {email} does not exists')
     if not verify_password(password,user.password_hash):
         raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED,detail = "Invalid Credentials")
-    user_data  = UserGet(email=user.email,name=user.name)
+    user_data  = UserGet(id = user.id,email=user.email,name=user.name)
     return user_data 
 
 async def login_user(email:EmailStr, password: str, db: AsyncSession) -> Token:
     user = await authenticate_user(email,password,db)
     if user:
-        data = {"sub":user.email}
+        data = {"sub":str(user.id)}
         expires_delta = timedelta(minutes=int(EXPIRES_DELTA))
         access_token = await create_access_token(data,expires_delta)
         return Token(access_token=access_token, token_type = "Bearer")
@@ -89,7 +88,8 @@ async def user_exists(db:AsyncSession, email: EmailStr):
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
-async def user_exists_by_id(db:AsyncSession, id: str):
+async def get_user_by_id(db:AsyncSession, id: int) -> User | None:
     stmt = select(User).where(User.id == id)
-    result = await db.execute(stmt)
+    result = await db.execute(stmt) 
     return result.scalar_one_or_none()
+

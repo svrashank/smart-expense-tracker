@@ -5,15 +5,15 @@ from fastapi import HTTPException, status
 from pydantic import EmailStr
 from app.schemas.users import UserGet
 
-async def get_user_from_db(email:EmailStr,db:AsyncSession) -> UserGet:
-    statement = select(User).where(User.email == email)
+async def get_user_from_db(user_id: int, db: AsyncSession) -> UserGet:
+    statement = select(User).where(User.id == user_id)
     results = await db.execute(statement)
     user = results.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
-                            detail = f'User with email {email} does not exists')
+                            detail = f'User with id {user_id} does not exists')
 
-    user_get = UserGet(email=user.email,name = user.name) 
+    user_get = UserGet(id = user.id,email=user.email,name = user.name) 
     return user_get
 
 # async def get_user_from_db_login(email:EmailStr,db:AsyncSession) -> UserGet:

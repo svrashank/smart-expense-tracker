@@ -1,9 +1,9 @@
 from pydantic import BaseModel, EmailStr
 class AccessTokenData(BaseModel):
-    email :EmailStr 
+    id : int
 
 class TokenData(BaseModel):
-    email :EmailStr
+    id : int
 
 class Token(BaseModel):
     access_token : str 

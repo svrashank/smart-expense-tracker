@@ -1,5 +1,4 @@
-from pydantic import BaseModel,Field, EmailStr,ConfigDict
-from enum import Enum
+from pydantic import BaseModel,EmailStr,ConfigDict
 
 class UserCreate(BaseModel):
     email : EmailStr
@@ -10,14 +9,15 @@ class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes = True)
 
 class UserDelete(BaseModel):
-    id : str
-    name : str | None = None
+    model_config = ConfigDict(extra="forbid")
+    password : str
 
 class Userlogin(BaseModel):
     email : EmailStr
     password : str 
 
 class UserGet(BaseModel):
+    id : int
     email : EmailStr
     name : str | None = None 
     

@@ -1,16 +1,13 @@
-from fastapi import APIRouter, Depends, status, Response
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependencies import get_db
 from app.schemas.users import UserCreate, UserOut, UserGet
 from app.crud.create import create_user
-from pydantic import EmailStr
 from app.schemas.users import UserDelete
-from app.crud.delete import delete_user
-from app.crud.read import get_user_from_db
 from app.services.auth import login_user, get_current_user as __get_current_user
 from typing import Annotated
 from fastapi.responses import JSONResponse
-
+from app.services.users import delete_account
 
 from fastapi.security import OAuth2PasswordRequestForm
 router = APIRouter()
@@ -23,12 +20,17 @@ async def post_new_user(form_data:UserCreate,db : AsyncSession = Depends(get_db)
     user = await create_user(db,form_data)
     return UserOut.model_validate(user)
 
-@router.delete("/delete_user",status_code= status.HTTP_200_OK)
-async def delete_current_user(current_user:Annotated[UserGet,Depends(__get_current_user)], db : AsyncSession =  Depends(get_db)):
-    user_data = UserDelete(id = current_user.id,name =current_user.name)
-    response = await delete_user(user_data,db)
+@router.post("/delete_account",status_code= status.HTTP_200_OK)
+async def delete_current_user(body: UserDelete,current_user:Annotated[UserGet,Depends(__get_current_user)], db : AsyncSession =  Depends(get_db)):
+    await delete_account(current_user.id, body.password, db)
+    response = JSONResponse(content ={"message": "Account deleted"})
+    response.delete_cookie(
+            key= 'access_token',
+            httponly = True,
+            secure = True,
+            samesite='lax',
+            path ='/')
     return response
-
 @router.post("/login")
 async def login_form_user(form_data: OAuth2PasswordRequestForm = Depends(), db : AsyncSession = Depends(get_db)):
     email = form_data.username
