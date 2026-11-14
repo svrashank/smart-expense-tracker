@@ -1,8 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, Boolean, DateTime, Float, ForeignKey, Enum as SQLAlchemyEnum
+from sqlalchemy import String, Integer, Boolean, DateTime
 from datetime import datetime
 from typing import List, Optional
-from enum import Enum
 from app.models.base import Base
 
 

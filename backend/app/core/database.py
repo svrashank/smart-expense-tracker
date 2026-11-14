@@ -2,9 +2,8 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from app.core.config import Settings
+from app.core.config import settings
 
-settings = Settings()
 
 DATABASE_URL = settings.DATABASE_URL
 LOG_SQL = settings.LOG_SQL

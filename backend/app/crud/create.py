@@ -1,10 +1,8 @@
 from app.models import User  
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.schemas.users import UserCreate
-from sqlalchemy import select
 from app.core.security import hash_password
 from fastapi import HTTPException, status
-from pydantic import EmailStr
 from app.services.auth import user_exists
 
 async def create_user(db: AsyncSession, user: UserCreate) -> User:

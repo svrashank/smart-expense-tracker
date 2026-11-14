@@ -1,9 +1,8 @@
 from fastapi import FastAPI
 from app.routes import users
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import Settings
+from app.core.config import settings
 
-settings = Settings()
 FRONTEND_PORT = settings.FRONTEND_PORT
 app = FastAPI()
 

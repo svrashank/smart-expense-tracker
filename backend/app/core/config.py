@@ -23,3 +23,4 @@ class Settings(BaseSettings):
     LOG_SQL:bool
 
 
+settings = Settings()

@@ -2,7 +2,6 @@ from app.models import User
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException, status
-from pydantic import EmailStr
 from app.schemas.users import UserGet
 
 async def get_user_from_db(user_id: int, db: AsyncSession) -> UserGet:

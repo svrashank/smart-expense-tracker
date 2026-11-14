@@ -8,12 +8,11 @@ from app.services.auth import login_user, get_current_user as __get_current_user
 from typing import Annotated
 from fastapi.responses import JSONResponse
 from app.services.users import delete_account
-
+from app.core.config import settings
 from fastapi.security import OAuth2PasswordRequestForm
+
 router = APIRouter()
-@router.get("/user",response_model = UserGet)
-async def get_user(current_user: Annotated[UserGet,Depends(__get_current_user)],db : AsyncSession = Depends(get_db)):
-    return current_user
+
 
 @router.post("/signup", status_code = status.HTTP_201_CREATED)
 async def post_new_user(form_data:UserCreate,db : AsyncSession = Depends(get_db)):
@@ -43,13 +42,10 @@ async def login_form_user(form_data: OAuth2PasswordRequestForm = Depends(), db :
         httponly = True,
         secure = True,
         samesite='lax',
-        max_age = 60 * 60,
+        max_age = settings.EXPIRES_DELTA * 60,
         path ='/')
-    response.status_code = status.HTTP_200_OK
-    response.body = b'{"message":"Success"}'
-    response.headers['content-type'] = 'application/json'
     return response
 
 @router.get("/current_user",response_model = UserGet)
-async def get_current_user(current_user: Annotated[UserGet,Depends(__get_current_user)],db: AsyncSession = Depends(get_db)):
+async def get_current_user(current_user: Annotated[UserGet,Depends(__get_current_user)]):
     return current_user

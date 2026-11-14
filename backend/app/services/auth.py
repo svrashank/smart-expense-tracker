@@ -1,7 +1,6 @@
 import jwt
 from jwt.exceptions import InvalidTokenError
 from fastapi import HTTPException,Depends,status
-from fastapi.security import OAuth2PasswordBearer
 from typing import Annotated
 from pydantic import EmailStr
 from datetime import datetime, timedelta, timezone
@@ -13,9 +12,8 @@ from app.models.users import User
 from sqlalchemy import select 
 from fastapi import Request
 from app.dependencies import get_db
-from app.core.config import Settings
+from app.core.config import settings
 from app.core.security import verify_password
-settings = Settings()
 SECRET_KEY = settings.JWT_SECRET_KEY
 EXPIRES_DELTA = settings.EXPIRES_DELTA
 
@@ -39,7 +37,6 @@ async def get_token_from_cookie(request: Request):
         raise HTTPException(status_code=401, detail="Not authenticated")
     return token
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 async def get_current_user(
         token: Annotated[str, Depends(get_token_from_cookie)],
         db: Annotated[AsyncSession, Depends(get_db)]
@@ -47,7 +44,6 @@ async def get_current_user(
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
     )
     user = None
     try:
@@ -67,10 +63,7 @@ async def authenticate_user(email,password,db) -> UserGet:
     statement = select(User).where(User.email == email)
     results = await db.execute(statement)
     user = results.scalar_one_or_none()
-    if not user:
-        raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
-                            detail = f'User with email {email} does not exists')
-    if not verify_password(password,user.password_hash):
+    if not user or not verify_password(password,user.password_hash):
         raise HTTPException(status_code = status.HTTP_401_UNAUTHORIZED,detail = "Invalid Credentials")
     user_data  = UserGet(id = user.id,email=user.email,name=user.name)
     return user_data 

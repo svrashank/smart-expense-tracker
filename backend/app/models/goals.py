@@ -1,8 +1,7 @@
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy import String, Integer, Boolean, DateTime, Float, ForeignKey, Enum as SQLAlchemyEnum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey
 from datetime import datetime
-from typing import List, Optional
-from enum import Enum
+from typing import Optional
 from app.models.base import Base
 
 class Goal(Base):
