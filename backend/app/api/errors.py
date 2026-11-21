@@ -17,7 +17,9 @@ STATUS_CODES: dict[type[exc.AppError], int] = {
 async def app_error_handler(request: Request, error: Exception) -> JSONResponse:
     assert isinstance(error, exc.AppError)
     status_code = STATUS_CODES.get(type(error), status.HTTP_400_BAD_REQUEST)
-    return JSONResponse(status_code=status_code, content={"code": error.code, "detail": error.message})
+    return JSONResponse(
+        status_code=status_code, content={"code": error.code, "detail": error.message}
+    )
 
 
 def register_error_handlers(app: FastAPI) -> None:

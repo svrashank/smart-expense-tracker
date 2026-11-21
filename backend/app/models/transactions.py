@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
-from typing import List, Optional
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint, func
 from sqlalchemy import Enum as SQLAlchemyEnum
@@ -9,21 +9,24 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
 
+if TYPE_CHECKING:
+    from app.models.users import User
+
 
 class ModeOfPurchase(str, Enum):
-    ONLINE = 'online'
-    OFFLINE = 'offline'
+    ONLINE = "online"
+    OFFLINE = "offline"
 
 
 class NecessityLevel(str, Enum):
-    HIGH = 'high'
-    MEDIUM = 'medium'
-    LOW = 'low'
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
 
 
 class TransactionType(str, Enum):
-    INCOME = 'income'
-    EXPENSE = 'expense'
+    INCOME = "income"
+    EXPENSE = "expense"
 
 
 class Transaction(Base):
@@ -38,9 +41,10 @@ class Transaction(Base):
     # to ask the user to move those transactions first.
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.category_id"), index=True)
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
-    description: Mapped[str] = mapped_column(String(100), nullable=False)  # merchant/payer, e.g. "Swiggy"
-    note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    mode_of_purchase: Mapped[Optional[ModeOfPurchase]] = mapped_column(
+    # Merchant or payer, e.g. "Swiggy".
+    description: Mapped[str] = mapped_column(String(100), nullable=False)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    mode_of_purchase: Mapped[ModeOfPurchase | None] = mapped_column(
         SQLAlchemyEnum(ModeOfPurchase, name="mode_of_purchase"), nullable=True
     )
 
@@ -60,13 +64,13 @@ class Category(Base):
     )
     name: Mapped[str] = mapped_column(String(30))
     transaction_type: Mapped[TransactionType] = mapped_column(
-        SQLAlchemyEnum(TransactionType, name='transaction_type')
+        SQLAlchemyEnum(TransactionType, name="transaction_type")
     )
-    necessity_index: Mapped[Optional[NecessityLevel]] = mapped_column(
-        SQLAlchemyEnum(NecessityLevel, name='necessity_level'), nullable=True
+    necessity_index: Mapped[NecessityLevel | None] = mapped_column(
+        SQLAlchemyEnum(NecessityLevel, name="necessity_level"), nullable=True
     )
-    source: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    source: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     user: Mapped["User"] = relationship(back_populates="categories")
     # No delete cascade: deleting a category must never delete transactions.
-    transactions: Mapped[List['Transaction']] = relationship(back_populates="category")
+    transactions: Mapped[list["Transaction"]] = relationship(back_populates="category")

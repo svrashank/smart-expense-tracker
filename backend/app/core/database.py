@@ -15,4 +15,3 @@ async_session = sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False,
 )
-

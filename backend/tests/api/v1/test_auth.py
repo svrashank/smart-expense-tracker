@@ -26,7 +26,9 @@ async def test_signup_duplicate_email(client: AsyncClient, user: dict[str, str])
 
 
 async def test_login_sets_cookie(client: AsyncClient, user: dict[str, str]) -> None:
-    response = await client.post(LOGIN, data={"username": user["email"], "password": user["password"]})
+    response = await client.post(
+        LOGIN, data={"username": user["email"], "password": user["password"]}
+    )
 
     assert response.status_code == 200
     assert "access_token" in response.cookies

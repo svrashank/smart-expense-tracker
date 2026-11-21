@@ -8,3 +8,22 @@ asyncio_mode = "auto"
 # and asyncpg connections break if they're used from a different loop.
 asyncio_default_fixture_loop_scope = "session"
 asyncio_default_test_loop_scope = "session"
+
+[tool.ruff]
+target-version = "py310"   # lowest Python we run: local venv is 3.10, Docker is 3.11
+line-length = 100
+# Migrations are generated, reviewed once, then never edited again.
+extend-exclude = ["app/alembic/versions"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",   # pycodestyle: basic style errors
+    "F",        # pyflakes: undefined names, unused imports/variables
+    "I",        # import sorting
+    "UP",       # modern syntax for the target Python (e.g. `X | None`)
+    "B",        # bugbear: common bug patterns
+    "ASYNC",    # blocking calls inside async functions
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]

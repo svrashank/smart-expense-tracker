@@ -31,4 +31,3 @@ async def get_current_user(db: SessionDep, token: AuthCookie = None) -> User:
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
-
