@@ -1,17 +1,31 @@
-from app.services.auth import get_user_by_id
-from fastapi import HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.crud.delete import delete_user
-from app.core.security import verify_password
+"""User account rules: signup and deletion."""
 
-async def delete_account(user_id: int, password: str, db : AsyncSession) -> int:
-        user = await get_user_by_id(db, id=user_id)
-        if not user:
-            raise HTTPException(status_code = status.HTTP_404_NOT_FOUND,
-                                detail = "User Not found")
-        hashed_password = user.password_hash
-        if not verify_password(password, hashed_password):
-            raise HTTPException(status_code = status.HTTP_403_FORBIDDEN,
-                                detail = "Invalid Credentials")
-        deleted_rows = await delete_user(user_id, db)
-        return deleted_rows
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.exceptions import IncorrectPassword, UserAlreadyExists
+from app.core.security import hash_password, verify_password
+from app.crud import users as users_crud
+from app.models import User
+from app.schemas.users import UserCreate
+
+
+async def signup(db: AsyncSession, data: UserCreate) -> User:
+    if await users_crud.get_by_email(db, data.email) is not None:
+        raise UserAlreadyExists()
+    user = await users_crud.create(db, email=data.email, password_hash=hash_password(data.password))
+    try:
+        await db.commit()
+    except IntegrityError:
+        # Two signups with the same email at the same moment: both pass the
+        # check above, and the unique constraint stops the second one here.
+        await db.rollback()
+        raise UserAlreadyExists() from None
+    return user
+
+
+async def delete_account(db: AsyncSession, user: User, password: str) -> None:
+    if not verify_password(password, user.password_hash):
+        raise IncorrectPassword()
+    await users_crud.delete(db, user.id)
+    await db.commit()

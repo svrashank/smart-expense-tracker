@@ -4,6 +4,8 @@ import LockIcon from '@mui/icons-material/Lock';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'
+import { http } from '../api/client'
+import { errorMessage } from '../api/errors'
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import AuthLayout from '../components/AuthLayout';
@@ -44,18 +46,18 @@ function SignUp() {
         }
         const formData = { email, password };
         try {
-            await axios.post("http://localhost:8000/auth/signup", formData);
+            await http.post("/auth/signup", formData);
 
             setSuccess("User Created")
             setError(null)
             setTimeout(() => navigate('/login'),2)
         } catch (error) {
-                const detail = axios.isAxiosError(error) ? error.response?.data?.detail : undefined;
-                if (detail?.code === "USER_EXISTS") {
-                    setError(detail.message);
+                const data = axios.isAxiosError(error) ? error.response?.data : undefined;
+                if (data?.code === "USER_EXISTS") {
+                    setError(data.detail);
                     setShowLoginRedirect(true);
                 } else {
-                    setError(detail?.message || "Something went wrong");
+                    setError(errorMessage(error));
                 }
                 setSuccess(null);
         }

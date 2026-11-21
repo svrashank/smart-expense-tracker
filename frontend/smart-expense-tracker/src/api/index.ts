@@ -3,6 +3,7 @@
 // with the real call (the endpoint is in the comment above each function) and keep
 // the signature, so no page has to change.
 import * as db from "./mock";
+import { http } from "./client";
 import { ApiError } from "./errors";
 import type {
   Account,
@@ -94,14 +95,17 @@ export async function changePassword(current: string, next: string): Promise<voi
   return respond(undefined);
 }
 
-// DELETE /api/v1/users/me with the password in the body (B-05 / B-12)
+// POST /api/v1/users/me/delete. Becomes DELETE /api/v1/users/me with B-18.
+// The backend clears the auth cookie in the same response.
 export async function deleteMe(password: string): Promise<void> {
-  if (!password) return fail("Enter your password to confirm.");
-  return respond(undefined);
+  if (!password) throw new ApiError("Enter your password to confirm.");
+  await http.post("/users/me/delete", { password });
 }
 
-// POST /api/v1/auth/logout clears the cookie (B-13)
-export const logout = (): Promise<void> => respond(undefined);
+// POST /api/v1/auth/logout clears the auth cookie
+export async function logout(): Promise<void> {
+  await http.post("/auth/logout");
+}
 
 // ---------------- Categories (B-20) ----------------
 

@@ -1,5 +1,6 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from pathlib import Path
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_PATH = Path(__file__).resolve().parents[3] / ".env"
 
@@ -21,6 +22,8 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY :str
     EXPIRES_DELTA :int
     LOG_SQL:bool
+    TEST_DATABASE_URL:str | None = None
+    TEST_POSTGRES_DB:str | None = None
 
 
 settings = Settings()

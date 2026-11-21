@@ -4,7 +4,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import { useNavigate } from 'react-router-dom';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { http } from '../api/client';
 import AuthLayout from '../components/AuthLayout';
 import { authButtonSx, authFieldSx } from '../components/styles';
 import { COLORS } from '../theme';
@@ -101,13 +101,12 @@ function Login() {
         data.append("username",email)
         data.append("password",password)
         event.preventDefault();
-        axios.post("http://localhost:8000/auth/login",
+        http.post("/auth/login",
                     data,
                     {
                         headers :{
                                 'Content-Type': "application/x-www-form-urlencoded",
                         },
-                        withCredentials: true
                     }
             )
              .then(() => {

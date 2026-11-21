@@ -1,25 +1,25 @@
 from fastapi import FastAPI
-from app.routes import users
 from fastapi.middleware.cors import CORSMiddleware
+
+from app.api import health
+from app.api.errors import register_error_handlers
+from app.api.v1.router import api_router
 from app.core.config import settings
 
-FRONTEND_PORT = settings.FRONTEND_PORT
 app = FastAPI()
 
-origins = [
-    f"http://localhost:{FRONTEND_PORT}",
-    f"http://127.0.0.1:{FRONTEND_PORT}",   
-]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins = origins,
-    allow_credentials = True,
-    allow_methods = ["*"],
-    allow_headers = ["*"]
-
+    allow_origins=[
+        f"http://localhost:{settings.FRONTEND_PORT}",
+        f"http://127.0.0.1:{settings.FRONTEND_PORT}",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
-@app.get("/ping")
-def ping():
-    return {"message": "ping"}
 
-app.include_router(users.router, prefix = '/auth', tags = ['User'])
+register_error_handlers(app)
+
+app.include_router(api_router, prefix="/api/v1")
+app.include_router(health.router, tags=["Health"])
