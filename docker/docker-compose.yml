@@ -19,7 +19,7 @@ services:
     environment:
       POSTGRES_USER: fastapi_user
       POSTGRES_PASSWORD: fastapi_pass
-      POSTGRES_DN: expense_tracker
+      POSTGRES_DB: expense_tracker
     volumes:
       - pgdata:/var/lib/postgresql/data
     env_file:
